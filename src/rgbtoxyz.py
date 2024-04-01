@@ -1,8 +1,12 @@
-import cv2, zlib
-from PIL import Image, ImageCms
+import cv2
+from PIL import Image
 import numpy as np
 from tools import build
-from io import BytesIO
+
+dt = {
+    'uint8': 255,
+    'uint16': 65535
+}
 
 images = ['Artwork KR CD-FCover-AdobeRGB.png']
 
@@ -10,18 +14,16 @@ open('image.laca', 'wb').write(b'')
 
 for img, index in zip(images, range(len(images))):
     image = Image.open(img).convert('RGBA')
-    src_profile = image.info.get('icc_profile', '')
-    if src_profile:
-        src_profile = ImageCms.ImageCmsProfile(BytesIO(src_profile))
-    else:
-        src_profile = ImageCms.createProfile('sRGB')
+    alpha = np.array(image)[..., 3]
+    roff = dt.get(str(alpha.dtype), 1)
+    alpha = alpha.astype(np.float32) / roff
 
-    image = ImageCms.profileToProfile(image, src_profile, ImageCms.createProfile('sRGB'), outputMode='RGBA')
-    data = np.asarray(image, dtype=np.float32)/255
+    data = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+    roff = dt.get(str(data.dtype), 1)
+    data = data.astype(np.float32) / roff
     resolution = data.shape[:2]
 
-    xyz = cv2.cvtColor(data[..., :3], cv2.COLOR_RGB2XYZ)
-    alpha = data[..., 3]
+    xyz = cv2.cvtColor(data[..., :3], cv2.COLOR_BGR2XYZ)
 
     xyza = np.dstack((xyz, alpha))
     open('image.laca', 'ab').\
