@@ -11,10 +11,6 @@ colour_spaces = {
         'NTSC': b'\x00\x04',
         'PAL': b'\x00\x05',
     },
-    'XYZ': {
-        'CIE 1931': b'\x00\x00',
-        'CIE 1964': b'\x00\x01',
-    },
     'YUV': {
         'YCbCr': b'\x00\x00',
         'YUV': b'\x00\x01',

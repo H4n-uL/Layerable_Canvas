@@ -4,19 +4,20 @@ import numpy as np
 from tools import build
 from io import BytesIO
 
-images = ['image.png']
+images = ['Artwork KR CD-FCover-AdobeRGB.png']
 
 open('image.laca', 'wb').write(b'')
 
 for img, index in zip(images, range(len(images))):
     image = Image.open(img)
-    # prf = image.info.get('icc_profile')
-    # srcprf = prf and ImageCms.ImageCmsProfile(BytesIO(prf)) or ImageCms.createProfile('sRGB')
-    # destprf = ImageCms.createProfile('XYZ')
-    # rgbxyz = ImageCms.buildTransformFromOpenProfiles(srcprf, destprf, 'RGB', 'XYZ')
-    # ImageCms.applyTransform(image, rgbxyz)
+    src_profile = image.info.get('icc_profile', '')
+    if src_profile:
+        src_profile = ImageCms.ImageCmsProfile(BytesIO(src_profile))
+    else:
+        src_profile = ImageCms.createProfile('sRGB')
 
-    data = np.array(image.convert('RGBA')).astype(np.float32) / 256.0
+    image = ImageCms.profileToProfile(image, src_profile, ImageCms.createProfile('sRGB'), outputMode='RGBA')
+    data = np.array(image).astype(np.float32)/256
     resolution = data.shape[:2]
 
     xyz = cv2.cvtColor(data[..., :3], cv2.COLOR_RGB2XYZ)
