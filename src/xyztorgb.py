@@ -26,7 +26,7 @@ with open('image.laca', 'rb') as f:
             col = struct.unpack('>I', head[0x8:0xc])[0]
             length = struct.unpack('>Q', head[0x10:0x18])[0]
             data = f.read(length)
-            # data = zlib.decompress(f.read(length))
+            # data = zlib.decompress(data)
             layers[lno]['data'][col] = np.frombuffer(data, dtype='>f2').reshape((4, resolution[1])).T
         
     for l, i in zip(layers, range(len(layers))):
