@@ -36,4 +36,4 @@ with open('image.laca', 'rb') as f:
         plt.imshow(image)
         plt.show()
 
-        cv2.imwrite(f'srgbimg{i}.png', cv2.cvtColor(image*256, cv2.COLOR_RGBA2BGRA))
+        cv2.imwrite(f'srgbimg{i}.png', cv2.cvtColor(image*255, cv2.COLOR_RGBA2BGRA))

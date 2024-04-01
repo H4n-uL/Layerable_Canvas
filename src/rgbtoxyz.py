@@ -9,7 +9,7 @@ images = ['Artwork KR CD-FCover-AdobeRGB.png']
 open('image.laca', 'wb').write(b'')
 
 for img, index in zip(images, range(len(images))):
-    image = Image.open(img)
+    image = Image.open(img).convert('RGBA')
     src_profile = image.info.get('icc_profile', '')
     if src_profile:
         src_profile = ImageCms.ImageCmsProfile(BytesIO(src_profile))
@@ -17,7 +17,7 @@ for img, index in zip(images, range(len(images))):
         src_profile = ImageCms.createProfile('sRGB')
 
     image = ImageCms.profileToProfile(image, src_profile, ImageCms.createProfile('sRGB'), outputMode='RGBA')
-    data = np.array(image).astype(np.float32)/256
+    data = np.asarray(image, dtype=np.float32)/255
     resolution = data.shape[:2]
 
     xyz = cv2.cvtColor(data[..., :3], cv2.COLOR_RGB2XYZ)
