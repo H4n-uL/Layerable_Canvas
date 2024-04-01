@@ -1,5 +1,4 @@
-import cv2
-import struct
+import cv2, struct, zlib
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -27,6 +26,7 @@ with open('image.laca', 'rb') as f:
             col = struct.unpack('>I', head[0x8:0xc])[0]
             length = struct.unpack('>Q', head[0x10:0x18])[0]
             data = f.read(length)
+            # data = zlib.decompress(f.read(length))
             layers[lno]['data'][col] = np.frombuffer(data, dtype='>f2').reshape((4, resolution[1])).T
         
     for l, i in zip(layers, range(len(layers))):
@@ -36,4 +36,4 @@ with open('image.laca', 'rb') as f:
         plt.imshow(image)
         plt.show()
 
-        cv2.imwrite(f'srgbimg{i}.png', cv2.cvtColor(image*255, cv2.COLOR_RGBA2BGRA))
+        cv2.imwrite(f'srgbimg{i}.png', cv2.cvtColor(image*256, cv2.COLOR_RGBA2BGRA))
