@@ -1,3 +1,4 @@
 Pillow
 python-opencv
 numpy
+scikit-image

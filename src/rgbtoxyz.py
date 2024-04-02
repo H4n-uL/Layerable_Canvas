@@ -1,24 +1,29 @@
-import cv2
-from PIL import Image
+import cv2, zlib
+from PIL import Image, ImageCms
 import numpy as np
 from tools import build
+import matplotlib.pyplot as plt
+# import io
+# import skimage
 
 dt = {
     'uint8': 255,
     'uint16': 65535
 }
 
-images = ['Artwork KR CD-FCover-AdobeRGB.png']
+images = ['ProPhoto.jpeg']
 
 open('image.laca', 'wb').write(b'')
 
 for img, index in zip(images, range(len(images))):
     image = Image.open(img).convert('RGBA')
+    # profile = ImageCms.ImageCmsProfile(io.BytesIO(image.info.get('icc_profile')))
+    # open('profile.icc', 'wb').write(image.info.get('icc_profile'))
     alpha = np.array(image)[..., 3]
     roff = dt.get(str(alpha.dtype), 1)
     alpha = alpha.astype(np.float32) / roff
 
-    data = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+    data = cv2.imread(img, cv2.IMREAD_UNCHANGED | cv2.IMREAD_ANYDEPTH)
     roff = dt.get(str(data.dtype), 1)
     data = data.astype(np.float32) / roff
     resolution = data.shape[:2]

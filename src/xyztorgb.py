@@ -33,7 +33,7 @@ with open('image.laca', 'rb') as f:
         data = np.array(layers[l]['data']).astype(np.float32)
         xyz, alpha = data[..., :3], data[..., 3]
         image = np.dstack((cv2.cvtColor(xyz.astype(np.float32), cv2.COLOR_XYZ2RGB), alpha))
-        plt.imshow(image)
-        plt.show()
+        # plt.imshow(image)
+        # plt.show()
 
         cv2.imwrite(f'srgbimg{i}.png', cv2.cvtColor(image*255, cv2.COLOR_RGBA2BGRA))
