@@ -2,50 +2,20 @@ import struct, zlib, json, os, sys
 import numpy as np
 from decimal import Decimal
 
-colour_spaces = {
-    'RGB': {
-        'sRGB': b'\x00\x00',
-        'Adobe': b'\x00\x01',
-        'ProPhoto': b'\x00\x02',
-        'P3': b'\x00\x03',
-        'NTSC': b'\x00\x04',
-        'PAL': b'\x00\x05',
-    },
-    'YUV': {
-        'YCbCr': b'\x00\x00',
-        'YUV': b'\x00\x01',
-        'YPbPr': b'\x00\x02',
-    },
-    'HSV': {
-        'HSV': b'\x00\x00',
-        'HSL': b'\x00\x01',
-    },
-    'CMYK': {
-        'CMYK': b'\x00\x00',
-        'CMY': b'\x00\x01',
-    }
-}
-
-def layer(ltype, ljson: dict, opacity: float, z_index, palette, cspace, resolution, scale: tuple = (0, 0), offset: tuple = (0, 0), rotation: Decimal = 0, lock: bool = False, hidden: bool = False):
+def layer(ltype, ljson: dict, opacity: float, z_index, resolution, scale: tuple = (0, 0), offset: tuple = (0, 0), rotation: Decimal = 0, lock: bool = False, hidden: bool = False):
     ljson = json.dumps(ljson, separators=(',', ':'), ensure_ascii=False).encode('utf-8')
     ltype = ltype == 'image' and b'\x00' or ltype=='text' and '\xff'
     opacity = struct.pack('>e', opacity)
     z_index = struct.pack('>H', z_index)
     vl = struct.pack('>B', (hidden and 1 or 0)<<7 | (lock and 1 or 0)<<6)
 
-    palt = struct.pack('>B', ['XYZ', 'RGB', 'YUV', 'HSV', 'CMYK'].index(palette))
-
-    if palette == 'XYZ':
-        cspace = b'\x00\x00'
-    elif cspace == 'json':
-        cspace = b'\xff\xff'
-    else: cspace = colour_spaces[palette][cspace]
-
     offset = list(offset)
-    try: offset[0] = (int(Decimal(offset[0])), int(str(Decimal(offset[0])).split('.')[1][:2]))
-    except: offset[0] = (int(Decimal(offset[0])), 0)
-    try: offset[1] = (int(Decimal(offset[1])), int(str(Decimal(offset[1])).split('.')[1][:2]))
-    except: offset[1] = (int(Decimal(offset[1])), 0)
+    offset[0] = offset[0].split('.')
+    offset[1] = offset[1].split('.')
+    for i in range(len(offset)):
+        offset[i] = offset[i].split('.')
+        if len(offset[i]) == 1: offset[i] = [int(offset[i][0]), 0]
+        else: offset[i] = [int(offset[i][0]), int(offset[i][1].ljust(2, '0'))]
 
     try: rotation = (int(Decimal(rotation)), int(str(Decimal(rotation)).split('.')[1][:9]))
     except: rotation = (int(Decimal(rotation)), 0)
@@ -59,7 +29,7 @@ def layer(ltype, ljson: dict, opacity: float, z_index, palette, cspace, resoluti
     return bytes(
         b'\xff\xf9\x72\x7a'+
         struct.pack('>I', len(ljson))+
-        ltype+opacity+z_index+palt+cspace+
+        ltype+opacity+z_index+b'\x00'*3+
         vl+b'\x00'*7+
         struct.pack('>II', *resolution)+
         struct.pack('>ee', *scale)+b'\x00'*4+

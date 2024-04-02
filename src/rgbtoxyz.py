@@ -32,7 +32,7 @@ for img, index in zip(images, range(len(images))):
 
     xyza = np.dstack((xyz, alpha))
     open('image.laca', 'ab').\
-        write(build.layer('image', {}, 1.0, index, 'XYZ', 'json', (resolution[0], resolution[1]), (1, 1), ('0', '0'), '0', False, False))
+        write(build.layer('image', {}, 1.0, index, (resolution[0], resolution[1]), (1, 1), ('0', '0'), '0', False, False))
     for rno in range(len(xyza)):
         row = np.transpose(xyza[rno], (1, 0)).astype('>f2').ravel().tobytes()
         # row = zlib.compress(row, level=9)
