@@ -2,7 +2,7 @@ import struct, zlib, json, os, sys
 import numpy as np
 from decimal import Decimal
 
-def layer(ltype, ljson: dict, opacity: float, z_index, resolution, scale: tuple = (0, 0), offset: tuple = (0, 0), rotation: Decimal = 0, lock: bool = False, hidden: bool = False):
+def layer(ltype, ljson: dict, opacity: float, z_index, resolution, scale: tuple = (0, 0), offset: tuple = ('0', '0'), rotation: str = '0', lock: bool = False, hidden: bool = False):
     ljson = json.dumps(ljson, separators=(',', ':'), ensure_ascii=False).encode('utf-8')
     ltype = ltype == 'image' and b'\x00' or ltype=='text' and '\xff'
     opacity = struct.pack('>e', opacity)
@@ -10,15 +10,14 @@ def layer(ltype, ljson: dict, opacity: float, z_index, resolution, scale: tuple 
     vl = struct.pack('>B', (hidden and 1 or 0)<<7 | (lock and 1 or 0)<<6)
 
     offset = list(offset)
-    offset[0] = offset[0].split('.')
-    offset[1] = offset[1].split('.')
     for i in range(len(offset)):
         offset[i] = offset[i].split('.')
         if len(offset[i]) == 1: offset[i] = [int(offset[i][0]), 0]
         else: offset[i] = [int(offset[i][0]), int(offset[i][1].ljust(2, '0'))]
 
-    try: rotation = (int(Decimal(rotation)), int(str(Decimal(rotation)).split('.')[1][:9]))
-    except: rotation = (int(Decimal(rotation)), 0)
+    rotation = rotation.split('.')
+    if len(rotation) == 1: rotation = [int(rotation[0]), 0]
+    else: rotation = [int(rotation[0]), int(rotation[1].ljust(2, '0'))]
 
     rint = struct.pack('>H', rotation[0]<<7)
     rdec = struct.pack('>I', rotation[1]<<1)
