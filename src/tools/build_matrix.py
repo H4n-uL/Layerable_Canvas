@@ -3,8 +3,8 @@ import numpy as np
 from PIL import Image, ImageCms
 from scipy.optimize import curve_fit
 
-img = 'ProPhoto.jpeg'
-# img = 'image.png'
+# img = 'ProPhoto.jpeg'
+img = 'image.png'
 profile = Image.open(img).info.get('icc_profile')
 if profile is None: profile = open('sRGB.icc', 'rb').read()
 
@@ -66,24 +66,32 @@ XYZ2RGB = np.linalg.inv(RGB2XYZ)
 rTRC = get_cTRC(profile, b'r')
 gTRC = get_cTRC(profile, b'g')
 bTRC = get_cTRC(profile, b'b')
+if rTRC[1] != 'gamma': rTRC = table2gamma(rTRC[0])
+if gTRC[1] != 'gamma': gTRC = table2gamma(gTRC[0])
+if bTRC[1] != 'gamma': bTRC = table2gamma(bTRC[0])
 
 # 여기서부터 실제 값이 필요함, 예시: 주황색 RGBA 픽셀
 pixel = np.array([1.0, 0.5, 0.2, 1.0])
 
 # 감마 적용
-if rTRC[1] == 'gamma': # 감마 값이라면
-    pixel[0] = pixel[0] ** rTRC[0] # 감마 즉시 적용
-else: # 감마 값이 아니라 커브를 줬다면
-    pixel[0] = pixel[0] ** table2gamma(rTRC[0])[0] # 커브를 감마로 변환 후 적용
-# 대충 반복하라는 코드
-if gTRC[1] == 'gamma': pixel[1] = pixel[1] ** gTRC[0]
-else: pixel[1] = pixel[1] ** table2gamma(gTRC[0])[0]
-if bTRC[1] == 'gamma': pixel[2] = pixel[2] ** bTRC[0]
-else: pixel[2] = pixel[2] ** table2gamma(bTRC[0])[0]
+pixel[0] = pixel[0] ** rTRC[0]
+pixel[1] = pixel[1] ** gTRC[0]
+pixel[2] = pixel[2] ** bTRC[0]
 
 # 변환 행렬 적용
-xyz = RGB2XYZ.dot(pixel[:3])
+XYZ = RGB2XYZ.dot(pixel[:3])
 
 # 알파값은 어따 쳐팔아먹은거야
-xyza = np.append(xyz, pixel[3])
-print(xyza)
+XYZA = np.append(XYZ, pixel[3])
+
+# 저장
+print(XYZA)
+
+# 역변환
+RGB = XYZ2RGB.dot(XYZA[:3])
+
+RGB[0] = RGB[0] ** (1/rTRC[0])
+RGB[1] = RGB[1] ** (1/gTRC[0])
+RGB[2] = RGB[2] ** (1/bTRC[0])
+
+print(np.append(RGB, XYZA[3]))
