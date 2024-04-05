@@ -27,13 +27,16 @@ with open('image.laca', 'rb') as f:
             length = struct.unpack('>Q', head[0x10:0x18])[0]
             data = f.read(length)
             # data = zlib.decompress(data)
-            layers[lno]['data'][col] = np.frombuffer(data, dtype='>f2').reshape((4, resolution[1])).T
+            layers[lno]['data'][col] = np.frombuffer(data, dtype='>f2').reshape((resolution[1], 4)).T
         
     for l, i in zip(layers, range(len(layers))):
         data = np.array(layers[l]['data']).astype(np.float32)
-        xyz, alpha = data[..., :3], data[..., 3]
-        image = np.dstack((cv2.cvtColor(xyz.astype(np.float32), cv2.COLOR_XYZ2RGB), alpha))
-        # plt.imshow(image)
-        # plt.show()
+        temp = []
+        for row in data:
+            temp.append(np.transpose(row, (1, 0)))
+        data = np.array(temp)
+        image = np.dstack((cv2.cvtColor(data[..., :3].astype(np.float32), cv2.COLOR_XYZ2RGB), data[..., 3]))
+        plt.imshow(image)
+        plt.show()
 
         cv2.imwrite(f'srgbimg{i}.png', cv2.cvtColor(image*255, cv2.COLOR_RGBA2BGRA))
