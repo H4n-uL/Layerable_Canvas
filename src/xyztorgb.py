@@ -1,4 +1,5 @@
 import cv2, struct, zlib
+from tools import cvt
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -31,12 +32,5 @@ with open('image.laca', 'rb') as f:
         
     for l, i in zip(layers, range(len(layers))):
         data = np.array(layers[l]['data']).astype(np.float32)
-        temp = []
-        for row in data:
-            temp.append(np.transpose(row, (1, 0)))
-        data = np.array(temp)
-        image = np.dstack((cv2.cvtColor(data[..., :3].astype(np.float32), cv2.COLOR_XYZ2RGB), data[..., 3]))
-        plt.imshow(image)
-        plt.show()
-
-        cv2.imwrite(f'srgbimg{i}.png', cv2.cvtColor(image*255, cv2.COLOR_RGBA2BGRA))
+        data = cvt.LACAtoRGBA(data, None).astype(np.float32)
+        cv2.imwrite(f'srgbimg{i}.png', data*255)
