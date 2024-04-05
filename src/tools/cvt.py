@@ -4,11 +4,23 @@ import os
 
 sRGB_Profile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sRGB.icc')
 
-D50TOD65 = np.array([
-[ 0.9554734527042182,  -0.023098536874261423, 0.0632593086610217],
-[-0.028369706963208136, 1.0099954580058652,   0.021041398966943008],
-[0.012314001688319899, -0.020507696433477912, 1.3303659366080753]])
-D65TOD50 = np.linalg.inv(D50TOD65)
+# import struct
+# def getxyz(data: bytes):
+#     x = struct.unpack('>h', data[:2])[0] + struct.unpack('>H', data[2:4])[0] / 2**16
+#     y = struct.unpack('>h', data[4:6])[0] + struct.unpack('>H', data[6:8])[0] / 2**16
+#     z = struct.unpack('>h', data[8:10])[0] + struct.unpack('>H', data[10:])[0] / 2**16
+#     return x, y, z
+
+# rXYZ = b'\x00\x01\x0c\x44\x00\x00\x07\x94\xff\xff\xfd\xa2'
+# gXYZ = b'\x00\x00\x05\xdf\x00\x00\xfd\x8f\x00\x00\x03\xdb'
+# bXYZ = b'\xff\xff\xf3\x26\xff\xff\xfb\xa1\x00\x00\xc0\x75'
+
+# D65TOD50 = np.array([getxyz(rXYZ), getxyz(gXYZ), getxyz(bXYZ)]).T
+D65TOD50 = np.array([
+[1.04791259765625, 0.0229339599609375, -0.050201416015625],
+[0.02960205078125, 0.9904632568359375, -0.0170745849609375],
+[-0.009246826171875, 0.0150604248046875,0.7517852783203125]])
+D50TOD65 = np.linalg.inv(D65TOD50)
 
 def RGBAtoLACA(data: np.ndarray, alpha: np.ndarray, profile):
     if profile is None: profile = open(sRGB_Profile, 'rb').read()
