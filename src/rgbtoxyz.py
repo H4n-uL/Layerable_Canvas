@@ -31,10 +31,10 @@ for img, index in zip(images, range(len(images))):
     resolution = data.shape[:2]
 
     xyza = cvt.RGBAtoLACA(data[..., :3], alpha, profile)
-    # print(data)
-    # print(xyza)
-    # trnsp = np.transpose(xyza, (0, 2, 1))[..., :3].astype(np.float32)
-    # print(trnsp)
+    print(data)
+    print(xyza)
+    trnsp = np.transpose(xyza, (0, 2, 1))[..., :3].astype(np.float32)
+    print(trnsp[787][429])
     # print(cv2.cvtColor(trnsp, cv2.COLOR_RGB2XYZ))
     # plt.imshow(cv2.cvtColor(trnsp, cv2.COLOR_RGB2XYZ))
     # plt.show()

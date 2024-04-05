@@ -1,8 +1,11 @@
 import numpy as np
 from tools import build_matrix
+import os
+
+sRGB_Profile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sRGB.icc')
 
 def RGBAtoLACA(data: np.ndarray, alpha: np.ndarray, profile):
-    if profile is None: profile = open('sRGB.icc', 'rb').read()
+    if profile is None: profile = open(sRGB_Profile, 'rb').read()
     rXYZ = build_matrix.get_cXYZ(profile, b'r')
     gXYZ = build_matrix.get_cXYZ(profile, b'g')
     bXYZ = build_matrix.get_cXYZ(profile, b'b')
