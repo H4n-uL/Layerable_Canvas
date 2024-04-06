@@ -36,7 +36,7 @@ def get_cTRC(profile: bytes, colour: bytes):
         return {'toXYZ': lambda x: x ** gamma, 'toRGB': lambda x: x ** (1/gamma)}
     else:
         profile = profile[offset+12:offset+length]
-        curve = np.array(struct.unpack('>'+'H'*(len(profile)//2), profile), dtype=np.float16)
+        curve = np.array(struct.unpack('>'+'H'*(len(profile)//2), profile), dtype=np.float64)
         curve /= 65535.0  # 0과 1 사이로 정규화
         x = np.linspace(0, 1, len(curve))
         
