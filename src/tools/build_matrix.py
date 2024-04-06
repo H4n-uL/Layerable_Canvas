@@ -28,7 +28,7 @@ def get_cTRC(profile: bytes, colour: bytes):
     offset = struct.unpack('>I', profile[i+4:i+8])[0]
     length = struct.unpack('>I', profile[i+8:i+12])[0]
     dlen = struct.unpack('>I', profile[offset+8:offset+12])[0]
-    
+
     if dlen == 1:
         # u8Fixed8Number, uint8 int + uint8 frac
         ufixed8p8 = struct.unpack('>BB', profile[offset+12:offset+length])
@@ -37,13 +37,9 @@ def get_cTRC(profile: bytes, colour: bytes):
     else:
         profile = profile[offset+12:offset+length]
         curve = np.array(struct.unpack('>'+'H'*(len(profile)//2), profile), dtype=np.float64)
-        curve /= 65535.0  # 0과 1 사이로 정규화
+        curve /= 65535.0
         x = np.linspace(0, 1, len(curve))
-        
-        # 0과 1 밖의 값을 허용하도록 extrapolate 옵션 사용
+
         gamma = interp1d(x, curve, kind='linear', fill_value='extrapolate')
-        
-        # 역변환을 위한 보간 함수 생성
         inv_gamma = interp1d(curve, x, kind='linear', fill_value='extrapolate')
-        
         return {'toXYZ': gamma, 'toRGB': inv_gamma}

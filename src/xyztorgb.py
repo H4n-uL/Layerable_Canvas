@@ -29,7 +29,7 @@ with open('image.laca', 'rb') as f:
             data = f.read(length)
             # data = zlib.decompress(data)
             layers[lno]['data'][col] = np.frombuffer(data, dtype='>f2').reshape((resolution[1], 4)).T
-        
+
     for l, i in zip(layers, range(len(layers))):
         data = np.array(layers[l]['data']).astype(np.float32)
         data = cvt.LACAtoRGBA(data, None).astype(np.float32)
