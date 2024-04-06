@@ -31,9 +31,6 @@ def RGBAtoLACA(data: np.ndarray, alpha: np.ndarray, profile):
     rTRC = build_matrix.get_cTRC(profile, b'r')
     gTRC = build_matrix.get_cTRC(profile, b'g')
     bTRC = build_matrix.get_cTRC(profile, b'b')
-    if rTRC[1] != 'gamma': rTRC = build_matrix.table2gamma(rTRC[0])
-    if gTRC[1] != 'gamma': gTRC = build_matrix.table2gamma(gTRC[0])
-    if bTRC[1] != 'gamma': bTRC = build_matrix.table2gamma(bTRC[0])
 
     RGB2XYZ = np.array([rXYZ, gXYZ, bXYZ]).T
 
@@ -41,9 +38,9 @@ def RGBAtoLACA(data: np.ndarray, alpha: np.ndarray, profile):
     while data.size > 0:
         # BGR to RGB
         row = np.transpose(data[0], (1, 0))[::-1]
-        row[0] = row[0]**rTRC[0]
-        row[1] = row[1]**gTRC[0]
-        row[2] = row[2]**bTRC[0]
+        row[0] = rTRC['toXYZ'](row[0])
+        row[1] = gTRC['toXYZ'](row[1])
+        row[2] = bTRC['toXYZ'](row[2])
         row = RGB2XYZ.dot(row)
         row = D50TOD65.dot(row)
         retdata.append(np.vstack((row, alpha[0])))
@@ -59,9 +56,6 @@ def LACAtoRGBA(data: np.ndarray, profile):
     rTRC = build_matrix.get_cTRC(profile, b'r')
     gTRC = build_matrix.get_cTRC(profile, b'g')
     bTRC = build_matrix.get_cTRC(profile, b'b')
-    if rTRC[1] != 'gamma': rTRC = build_matrix.table2gamma(rTRC[0])
-    if gTRC[1] != 'gamma': gTRC = build_matrix.table2gamma(gTRC[0])
-    if bTRC[1] != 'gamma': bTRC = build_matrix.table2gamma(bTRC[0])
 
     XYZ2RGB = np.linalg.inv(np.array([rXYZ, gXYZ, bXYZ]).T)
 
@@ -72,9 +66,9 @@ def LACAtoRGBA(data: np.ndarray, profile):
         row = D65TOD50.dot(data[0][:3]) # D65 XYZ to D50 XYZ
         row = XYZ2RGB.dot(row)          # XYZ to RGB
         # Gamma
-        row[0] = row[0]**(1/rTRC[0])
-        row[1] = row[1]**(1/gTRC[0])
-        row[2] = row[2]**(1/bTRC[0])
+        row[0] = rTRC['toRGB'](row[0])
+        row[1] = gTRC['toRGB'](row[1])
+        row[2] = bTRC['toRGB'](row[2])
         row = row[::-1] # RGB to BGR
         row = np.transpose(np.vstack((row, alpha)), (1, 0))
         retdata.append(row)

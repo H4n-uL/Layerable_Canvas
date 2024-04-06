@@ -1,7 +1,6 @@
 import struct
 import numpy as np
-from PIL import Image, ImageCms
-from scipy.optimize import curve_fit
+from scipy.interpolate import interp1d
 
 def parse_s15Fixed16Number(data: bytes):
     '''s15Fixed16Number
@@ -30,17 +29,21 @@ def get_cTRC(profile: bytes, colour: bytes):
     length = struct.unpack('>I', profile[i+8:i+12])[0]
     dlen = struct.unpack('>I', profile[offset+8:offset+12])[0]
     
-    if dlen == 1: # u8Fixed8Number, uint8 int + uint8 frac
+    if dlen == 1:
+        # u8Fixed8Number, uint8 int + uint8 frac
         ufixed8p8 = struct.unpack('>BB', profile[offset+12:offset+length])
         gamma = ufixed8p8[0] + ufixed8p8[1] / 2**8
-        return gamma, 'gamma'
+        return {'toXYZ': lambda x: x ** gamma, 'toRGB': lambda x: x ** (1/gamma)}
     else:
         profile = profile[offset+12:offset+length]
-        curve = np.array(struct.unpack('>'+'H'*(len(profile)//2), profile))
-        return curve, 'curve'
-
-def table2gamma(table):
-    x = np.linspace(0, 1, len(table))
-    # 대충 닮게만 만들어도 잘 돼 한잔 해
-    popt, _ = curve_fit(lambda x, gamma: x ** gamma, x, table/65535)
-    return popt[0], 'gamma'
+        curve = np.array(struct.unpack('>'+'H'*(len(profile)//2), profile), dtype=np.float16)
+        curve /= 65535.0  # 0과 1 사이로 정규화
+        x = np.linspace(0, 1, len(curve))
+        
+        # 0과 1 밖의 값을 허용하도록 extrapolate 옵션 사용
+        gamma = interp1d(x, curve, kind='linear', fill_value='extrapolate')
+        
+        # 역변환을 위한 보간 함수 생성
+        inv_gamma = interp1d(curve, x, kind='linear', fill_value='extrapolate')
+        
+        return {'toXYZ': gamma, 'toRGB': inv_gamma}
