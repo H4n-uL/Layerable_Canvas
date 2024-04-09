@@ -17,6 +17,8 @@ images = ['image.png']
 
 open('image.laca', 'wb').write(b'')
 
+bits, isfloat, ecc, littleendian = 16, True, False, False
+
 for img, index in zip(images, range(len(images))):
     image = Image.open(img).convert('RGBA')
     profile = image.info.get('icc_profile')
@@ -36,4 +38,4 @@ for img, index in zip(images, range(len(images))):
     for rno in range(len(xyza)):
         row = np.transpose(xyza[rno], (1, 0)).astype('>f2').ravel().tobytes()
         # row = zlib.compress(row, level=9)
-        open('image.laca', 'ab').write(build.horizimg_header(index, rno, row)+row)
+        open('image.laca', 'ab').write(build.horizimg_header(index, rno, row, bits, isfloat, ecc, littleendian)+row)

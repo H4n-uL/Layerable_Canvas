@@ -40,11 +40,12 @@ def layer(ltype, ljson: dict, opacity: float, z_index, resolution, scale: tuple 
         ljson
     )
 
-def horizimg_header(layerno, colno, data: bytes):
+def horizimg_header(layerno, colno, data: bytes, bits, isfloat, isecc, little_endian):
+    BFE = struct.pack('>B', (bits-1)<<3 | (isfloat and 1 or 0)<<2 | (isecc and 1 or 0)<<1 | (little_endian and 1 or 0))
     return bytes(
         b'\xff\xfd\x69\xc6'+
         struct.pack('>H', layerno)+
-        b'\x00'*2+
+        BFE+b'\x00'+
         struct.pack('>I', colno)+
         b'\x00'*4+
         struct.pack('>Q', len(data))+
